@@ -5,6 +5,7 @@ public class Note {
     private long id;
     private String heading;
     private String details;
+    private int position;
 
     public long getId() {
         return id;
@@ -28,5 +29,13 @@ public class Note {
 
     public void setDetails(String details) {
         this.details = details;
+    }
+
+    public long getPosition() {
+        return position;
+    }
+
+    public void setPosition(int newPosition) {
+        this.position = newPosition;
     }
 }

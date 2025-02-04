@@ -1,5 +1,6 @@
 package com.example.blank;
 
+import android.annotation.SuppressLint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,6 +9,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder> {
@@ -23,6 +26,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
     public NoteAdapter(List<Note> notes, OnNoteClickListener listener) {
         this.notes = notes;
         this.noteClickListener = listener;
+        this.notes.sort(Comparator.comparingInt(n -> (int) n.getPosition()));
     }
 
     @NonNull
@@ -37,6 +41,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
         Note note = notes.get(position);
         holder.titleTextView.setText(note.getHeading());
         holder.contentTextView.setText(note.getDetails());
+        //holder.positionTextView.setText(String.valueOf(note.getPosition())); // отобразим позицию заметки (если необходимо)
 
         holder.itemView.setOnClickListener(v -> noteClickListener.onNoteClick(note));
         holder.deleteImageView.setOnClickListener(v -> noteClickListener.onDeleteClick(note));
@@ -50,13 +55,23 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
     static class NoteViewHolder extends RecyclerView.ViewHolder {
         TextView titleTextView;
         TextView contentTextView;
+        TextView positionTextView; // добавим TextView для отображения позиции (если необходимо)
         ImageView deleteImageView;
 
         public NoteViewHolder(@NonNull View itemView) {
             super(itemView);
             titleTextView = itemView.findViewById(R.id.textViewTitle);
             contentTextView = itemView.findViewById(R.id.textViewContent);
+            //positionTextView = itemView.findViewById(R.id.textViewPosition);
             deleteImageView = itemView.findViewById(R.id.imageViewMenu);
         }
+    }
+
+    // Метод для обновления списка заметок и сохранения их позиций
+    @SuppressLint("NotifyDataSetChanged")
+    public void updateNotes(List<Note> updatedNotes) {
+        this.notes = updatedNotes;
+        Collections.sort(this.notes, Comparator.comparingInt(n -> (int) n.getPosition()));
+        notifyDataSetChanged();
     }
 }

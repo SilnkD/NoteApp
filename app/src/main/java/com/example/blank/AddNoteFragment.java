@@ -73,9 +73,11 @@ public class AddNoteFragment extends Fragment {
         if (noteId == -1) {
             long newNoteId = databaseHelper.insertNote(title, content);
             if (newNoteId != -1) {
-                String message = String.format("Note \"%s\" saved successfully", newNoteId);
+                String message = String.format("Note \"%s\" saved successfully", title);
                 Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
-                getActivity().onBackPressed();
+                if (getActivity() != null) {
+                    getActivity().onBackPressed();
+                }
             } else {
                 Toast.makeText(getContext(), "Error saving note", Toast.LENGTH_SHORT).show();
             }
@@ -83,7 +85,9 @@ public class AddNoteFragment extends Fragment {
             boolean updated = databaseHelper.updateNote(noteId, title, content);
             if (updated) {
                 Toast.makeText(getContext(), "Note updated successfully", Toast.LENGTH_SHORT).show();
-                getActivity().onBackPressed();
+                if (getActivity() != null) {
+                    getActivity().onBackPressed();
+                }
             } else {
                 Toast.makeText(getContext(), "Error updating note", Toast.LENGTH_SHORT).show();
             }

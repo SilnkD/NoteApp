@@ -1,5 +1,5 @@
 package com.example.blank;
-// DatabaseHelper.java
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -11,19 +11,21 @@ import java.util.List;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
-    private static final String DATABASE_NAME = "notes.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final String DATABASE_NAME = "note.db";
+    private static final int DATABASE_VERSION = 3;
 
-    public static final String TABLE_NOTES = "notes";
+    public static final String TABLE_NOTES = "note";
     public static final String COLUMN_ID = "_id";
     public static final String COLUMN_HEADING = "heading";
     public static final String COLUMN_DETAILS = "details";
+    public static final String COLUMN_POSITION = "position";
 
     private static final String TABLE_CREATE =
             "CREATE TABLE " + TABLE_NOTES + " (" +
                     COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     COLUMN_HEADING + " TEXT, " +
-                    COLUMN_DETAILS + " TEXT);";
+                    COLUMN_DETAILS + " TEXT, " +
+                    COLUMN_POSITION + " INTEGER);";
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -55,11 +57,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             db.close();
         }
     }
+
     public long insertNote(String heading, String details) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_HEADING, heading);
         values.put(COLUMN_DETAILS, details);
+        values.put(COLUMN_POSITION, 0);
+
+        // Увеличиваем позицию всех существующих заметок на 1
+        db.execSQL("UPDATE " + TABLE_NOTES + " SET " + COLUMN_POSITION + " = " + COLUMN_POSITION + " + 1");
+
 
         long newRowId = -1;
 
@@ -74,11 +82,31 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return newRowId;
     }
 
+    public boolean updateNotePosition(long noteId, int position) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_POSITION, position);
+
+        int rowsAffected = -1;
+
+        try {
+            rowsAffected = db.update(TABLE_NOTES, values, COLUMN_ID + " = ?",
+                    new String[]{String.valueOf(noteId)});
+        } catch (SQLException e) {
+            // Handle the exception
+        } finally {
+            db.close();
+        }
+
+        return rowsAffected > 0;
+    }
+
     public boolean updateNote(long noteId, String heading, String details) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_HEADING, heading);
         values.put(COLUMN_DETAILS, details);
+        values.put(COLUMN_POSITION, 0);
 
         int rowsAffected = -1;
 
@@ -101,27 +129,26 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         try {
             Cursor cursor = db.query(
                     TABLE_NOTES,
-                    new String[]{COLUMN_ID, COLUMN_HEADING, COLUMN_DETAILS},
+                    new String[]{COLUMN_ID, COLUMN_HEADING, COLUMN_DETAILS, COLUMN_POSITION},
                     null,
                     null,
                     null,
                     null,
-                    null
+                    COLUMN_POSITION + " ASC" // Сортировка по позиции
             );
 
             if (cursor != null && cursor.moveToFirst()) {
                 do {
-                    int check_cursor = cursor.getColumnIndex(COLUMN_ID);
-                    long id = cursor.getLong(check_cursor);
-                    check_cursor = cursor.getColumnIndex(COLUMN_HEADING);
-                    String heading = cursor.getString(check_cursor);
-                    check_cursor = cursor.getColumnIndex(COLUMN_DETAILS);
-                    String details = cursor.getString(check_cursor);
+                    long id = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ID));
+                    String heading = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HEADING));
+                    String details = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DETAILS));
+                    int position = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_POSITION));
 
                     Note note = new Note();
                     note.setId(id);
                     note.setHeading(heading);
                     note.setDetails(details);
+                    note.setPosition(position);
 
                     notes.add(note);
                 } while (cursor.moveToNext());
@@ -144,7 +171,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         try {
             Cursor cursor = db.query(
                     TABLE_NOTES,
-                    new String[]{COLUMN_ID, COLUMN_HEADING, COLUMN_DETAILS},
+                    new String[]{COLUMN_ID, COLUMN_HEADING, COLUMN_DETAILS, COLUMN_POSITION},
                     COLUMN_ID + " = ?",
                     new String[]{String.valueOf(noteId)},
                     null,
@@ -153,17 +180,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             );
 
             if (cursor != null && cursor.moveToFirst()) {
-                int check_cursor = cursor.getColumnIndex(COLUMN_ID);
-                long id = cursor.getLong(check_cursor);
-                check_cursor = cursor.getColumnIndex(COLUMN_HEADING);
-                String heading = cursor.getString(check_cursor);
-                check_cursor = cursor.getColumnIndex(COLUMN_DETAILS);
-                String details = cursor.getString(check_cursor);
+                long id = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ID));
+                String heading = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HEADING));
+                String details = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DETAILS));
+                int position = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_POSITION));
 
                 note = new Note();
                 note.setId(id);
                 note.setHeading(heading);
                 note.setDetails(details);
+                note.setPosition(position);
 
                 cursor.close();
             }

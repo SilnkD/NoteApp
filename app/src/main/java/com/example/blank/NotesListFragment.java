@@ -1,5 +1,6 @@
 package com.example.blank;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,6 +13,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.Collections;
@@ -64,6 +66,7 @@ public class NotesListFragment extends Fragment implements NoteAdapter.OnNoteCli
                 int toPosition = target.getAdapterPosition();
                 Collections.swap(notes, fromPosition, toPosition);
                 noteAdapter.notifyItemMoved(fromPosition, toPosition);
+                updateNotePositions();
                 return true;
             }
 
@@ -103,6 +106,7 @@ public class NotesListFragment extends Fragment implements NoteAdapter.OnNoteCli
         openAddNoteFragment(note.getId());
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     @Override
     public void onDeleteClick(Note note) {
         DatabaseHelper databaseHelper = new DatabaseHelper(getContext());
@@ -110,5 +114,14 @@ public class NotesListFragment extends Fragment implements NoteAdapter.OnNoteCli
         notes.remove(note);
         noteAdapter.notifyDataSetChanged();
         Toast.makeText(getContext(), "Note deleted", Toast.LENGTH_SHORT).show();
+    }
+
+    private void updateNotePositions() {
+        DatabaseHelper databaseHelper = new DatabaseHelper(getContext());
+        for (int i = 0; i < notes.size(); i++) {
+            Note note = notes.get(i);
+            note.setPosition(i);
+            databaseHelper.updateNotePosition(note.getId(), i);
+        }
     }
 }
