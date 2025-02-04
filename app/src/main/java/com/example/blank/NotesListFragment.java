@@ -9,9 +9,12 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
+import java.util.Collections;
 import java.util.List;
 
 public class NotesListFragment extends Fragment implements NoteAdapter.OnNoteClickListener {
@@ -43,6 +46,44 @@ public class NotesListFragment extends Fragment implements NoteAdapter.OnNoteCli
         }
 
         return view;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.Callback() {
+            @Override
+            public int getMovementFlags(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
+                return makeMovementFlags(ItemTouchHelper.UP | ItemTouchHelper.DOWN, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT);
+            }
+
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                int fromPosition = viewHolder.getAdapterPosition();
+                int toPosition = target.getAdapterPosition();
+                Collections.swap(notes, fromPosition, toPosition);
+                noteAdapter.notifyItemMoved(fromPosition, toPosition);
+                return true;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                int position = viewHolder.getAdapterPosition();
+                Note note = notes.get(position);
+
+                if (direction == ItemTouchHelper.LEFT) {
+                    // Удаление заметки
+                    onDeleteClick(note);
+                } else if (direction == ItemTouchHelper.RIGHT) {
+                    // Редактирование заметки
+                    onNoteClick(note);
+                    noteAdapter.notifyItemChanged(position); // Восстановление элемента после свайпа
+                }
+            }
+        });
+
+        itemTouchHelper.attachToRecyclerView(recyclerView);
     }
 
     private void openAddNoteFragment(long noteId) {
