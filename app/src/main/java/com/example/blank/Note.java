@@ -1,6 +1,5 @@
 package com.example.blank;
 
-// Note.java
 public class Note {
     private long id;
     private String heading;

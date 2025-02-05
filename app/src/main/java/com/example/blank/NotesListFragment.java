@@ -3,19 +3,23 @@ package com.example.blank;
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SearchView;
+import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Lifecycle;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-
 import java.util.Collections;
 import java.util.List;
 
@@ -47,6 +51,36 @@ public class NotesListFragment extends Fragment implements NoteAdapter.OnNoteCli
             recyclerView.setAdapter(noteAdapter);
         }
 
+        // Добавление MenuProvider для поддержки меню
+        requireActivity().addMenuProvider(new MenuProvider() {
+            @Override
+            public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
+                menuInflater.inflate(R.menu.menu_notes_list, menu);
+                MenuItem searchItem = menu.findItem(R.id.action_search);
+                SearchView searchView = (SearchView) searchItem.getActionView();
+
+                if (searchView != null) {
+                    searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                        @Override
+                        public boolean onQueryTextSubmit(String query) {
+                            return false;
+                        }
+
+                        @Override
+                        public boolean onQueryTextChange(String newText) {
+                            noteAdapter.getFilter().filter(newText);
+                            return true;
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
+                return false;
+            }
+        }, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
+
         return view;
     }
 
@@ -74,15 +108,9 @@ public class NotesListFragment extends Fragment implements NoteAdapter.OnNoteCli
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
                 int position = viewHolder.getAdapterPosition();
                 Note note = notes.get(position);
-
-                if (direction == ItemTouchHelper.LEFT) {
-                    // Удаление заметки
-                    onDeleteClick(note);
-                } else if (direction == ItemTouchHelper.RIGHT) {
                     // Редактирование заметки
                     onNoteClick(note);
-                    noteAdapter.notifyItemChanged(position); // Восстановление элемента после свайпа
-                }
+                    noteAdapter.notifyItemChanged(position); // Восстановление элемента после свайп
             }
         });
 
