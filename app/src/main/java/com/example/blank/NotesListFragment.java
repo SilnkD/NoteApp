@@ -77,7 +77,13 @@ public class NotesListFragment extends Fragment implements NoteAdapter.OnNoteCli
 
             @Override
             public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
-                return false;
+                if(menuItem.getItemId()== R.id.action_sort_ascending) {
+                    noteAdapter.sortByTitleAscending();
+                    return true;
+                } else if (menuItem.getItemId()== R.id.action_sort_descending) {
+                    noteAdapter.sortByTitleDescending();
+                    return true;
+                } else return false;
             }
         }, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
@@ -108,9 +114,15 @@ public class NotesListFragment extends Fragment implements NoteAdapter.OnNoteCli
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
                 int position = viewHolder.getAdapterPosition();
                 Note note = notes.get(position);
+
+                if (direction == ItemTouchHelper.LEFT) {
+                    // Удаление заметки
+                    onDeleteClick(note);
+                } else if (direction == ItemTouchHelper.RIGHT) {
                     // Редактирование заметки
                     onNoteClick(note);
-                    noteAdapter.notifyItemChanged(position); // Восстановление элемента после свайп
+                    noteAdapter.notifyItemChanged(position); // Восстановление элемента после свайпа
+                }
             }
         });
 

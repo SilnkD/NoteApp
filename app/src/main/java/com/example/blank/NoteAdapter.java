@@ -1,6 +1,5 @@
 package com.example.blank;
 
-import android.annotation.SuppressLint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -58,7 +57,6 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
     static class NoteViewHolder extends RecyclerView.ViewHolder {
         TextView titleTextView;
         TextView contentTextView;
-        TextView positionTextView; // добавим TextView для отображения позиции (если необходимо)
         ImageView deleteImageView;
 
         public NoteViewHolder(@NonNull View itemView) {
@@ -69,13 +67,6 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
         }
     }
 
-    // Метод для обновления списка заметок и сохранения их позиций
-    @SuppressLint("NotifyDataSetChanged")
-    public void updateNotes(List<Note> updatedNotes) {
-        this.notes = updatedNotes;
-        Collections.sort(this.notes, Comparator.comparingInt(n -> (int) n.getPosition()));
-        notifyDataSetChanged();
-    }
     @Override
     public Filter getFilter() {
         return new Filter() {
@@ -106,5 +97,15 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
                 notifyDataSetChanged();
             }
         };
+    }
+
+    public void sortByTitleAscending() {
+        Collections.sort(notesFiltered, Comparator.comparing(Note::getHeading));
+        notifyDataSetChanged();
+    }
+
+    public void sortByTitleDescending() {
+        Collections.sort(notesFiltered, (note1, note2) -> note2.getHeading().compareTo(note1.getHeading()));
+        notifyDataSetChanged();
     }
 }

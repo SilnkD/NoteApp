@@ -8,4 +8,16 @@
         android:title="@string/search_hint"
         app:showAsAction="ifRoom|collapseActionView"
         app:actionViewClass="androidx.appcompat.widget.SearchView" />
+
+    <item
+        android:id="@+id/action_sort_ascending"
+        android:title="@string/sort_hint"
+        android:icon="@drawable/ic_sort_az"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_sort_descending"
+        android:title="@string/sort_hint_2"
+        android:icon="@drawable/ic_sort_za"
+        app:showAsAction="never" />
+
 </menu>
